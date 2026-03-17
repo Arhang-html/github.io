@@ -42,6 +42,25 @@
 </head>
 <body>
 
+<div class="language-switch" style="display: flex; align-items: center; gap: 16px;">
+    <select id="language-select" onchange="changeLanguage()">
+        <option value="en">English</option>
+        <option value="zh" selected>中文</option>
+    </select>
+    
+    <!-- 登出按鈕 -->
+    <button onclick="logout()" style="
+        background: #ef4444;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        font-weight: 500;
+    ">登出</button>
+</div>
+
 <div class="language-switch">
     <select id="language-select" onchange="changeLanguage()">
         <option value="en">English</option>
@@ -74,6 +93,22 @@
 </div>
 
 <script>
+
+// 登入檢查
+if (localStorage.getItem('isAdminLoggedIn') !== 'true') {
+    // 沒登入 → 直接跳轉到登入頁
+    window.location.href = 'login.html';
+}
+
+// 登出
+function logout() {
+    if (confirm('確定要登出嗎？')) {
+        localStorage.removeItem('isAdminLoggedIn');
+        localStorage.removeItem('loginTime'); // 如果有使用
+        window.location.href = 'login.html';
+    }
+}
+
     // ==================== 你的 Google Apps Script URL ====================
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwhSlUhWoBb9V5xVcWcDw0O98zk8v8xWjJEg4Vk8Jjux_7TW1dfAVF_UHeN3yr9y84y/exec';
 

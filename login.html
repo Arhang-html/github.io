@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理員登入 - Kitchen Manager</title>
+  <style>
+    :root {
+      --bg: #000;
+      --text: #fff;
+      --accent: #10a37f;
+      --accent-hover: #0d8b6a;
+      --input-bg: #1e1e1e;
+      --border: #333;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    header {
+      width: 100%;
+      max-width: 1200px;
+      padding: 20px 0;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .logo {
+      font-size: 2.8rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: linear-gradient(90deg, #10a37f, #1a7f64);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: #aaa;
+      margin-top: 8px;
+    }
+
+    main {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(20, 20, 20, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px 32px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      text-align: center;
+      margin-bottom: 32px;
+      color: var(--text);
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+      color: #ccc;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 1.05rem;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: white;
+      transition: all 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(16,163,127,0.2);
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.25s;
+      margin-top: 12px;
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .error {
+      color: #ff4d4f;
+      font-size: 0.9rem;
+      margin-top: 8px;
+      text-align: center;
+      display: none;
+    }
+
+    footer {
+      margin-top: 60px;
+      color: #666;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      main {
+        padding: 32px 24px;
+      }
+      .logo {
+        font-size: 2.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Kitchen Manager</div>
+  <div class="subtitle">廚房管理系統</div>
+</header>
+
+<main>
+  <h1>管理員登入</h1>
+
+  <form id="loginForm">
+    <div class="form-group">
+      <label for="adminId">管理員 ID</label>
+      <input type="text" id="adminId" autocomplete="off" required>
+    </div>
+
+    <div class="form-group">
+      <label for="adminPw">密碼</label>
+      <input type="password" id="adminPw" autocomplete="off" required>
+    </div>
+
+    <button type="submit">登入</button>
+
+    <div class="error" id="errorMsg">ID 或密碼錯誤，請再試一次</div>
+  </form>
+</main>
+
+<footer>
+  © 2025 Kitchen Manager • Powered by Grok
+</footer>
+
+<script>
+  const form = document.getElementById('loginForm');
+  const errorMsg = document.getElementById('errorMsg');
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const id = document.getElementById('adminId').value.trim();
+    const pw = document.getElementById('adminPw').value.trim();
+
+    // 固定管理員帳密
+    if (id === '1234' && pw === '5678') {
+      // 登入成功 → 跳轉到主頁面
+      localStorage.setItem('isAdminLoggedIn', 'true');
+      window.location.href = 'index.html';
+    } else {
+      errorMsg.style.display = 'block';
+      // 簡單防呆：3秒後隱藏錯誤訊息
+      setTimeout(() => {
+        errorMsg.style.display = 'none';
+      }, 3000);
+    }
+  });
+
+  // 如果已經登入過，直接跳轉（可選）
+  if (localStorage.getItem('isAdminLoggedIn') === 'true') {
+    window.location.href = 'index.html';
+  }
+</script>
+
+</body>
+</html>

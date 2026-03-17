@@ -3,44 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Restaurant Selection - 餐廳選擇</title>
+    <title>Restaurant Selection</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-            background: #f4f4f4; 
-            text-align: center;
+
+	select {
+    		color: #ffffff;           /* 按鈕文字保持白色 */
+    		background: rgba(20, 20, 30, 0.8);
+		}
+
+	select option {
+		    color: #ffffff;           /* 選項文字白色 */
+		    background: #111827;      /* 深灰背景 */
+		}
+
+	select option:checked,
+	select option:hover {
+		    background: var(--accent); /* 藍綠高亮 */
+		    color: #000000;
+		}
+
+        :root {
+            --bg: #000000;
+            --text: #ffffff;
+            --text-secondary: #b0b0b0;
+            --accent: #00d4ff;        /* SpaceX 藍綠科技色 */
+            --accent-hover: #00aaff;
+            --card-bg: rgba(20, 20, 30, 0.6);
+            --border: rgba(0, 212, 255, 0.15);
+            --glow: 0 0 20px rgba(0, 212, 255, 0.3);
         }
-        .language-switch { position: absolute; top: 10px; right: 10px; }
-        h1 { color: #333; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg) url('IndexBackground.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .language-switch {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        select, button {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        select:hover, button:hover {
+            background: rgba(255,255,255,0.15);
+            box-shadow: var(--glow);
+            transform: translateY(-2px);
+        }
+
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.7) !important;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.9) !important;
+        }
+
         .restaurant-grid {
             display: flex;
             justify-content: center;
-            gap: 40px;
-            margin-top: 50px;
+            gap: 60px;
+            margin-top: 120px;
             flex-wrap: wrap;
+            padding: 0 20px;
         }
+
         .restaurant-card {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            width: 280px;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 32px;
+            width: 320px;
             cursor: pointer;
-            transition: transform 0.3s;
+            transition: all 0.4s ease;
+            box-shadow: var(--glow);
         }
+
         .restaurant-card:hover {
-            transform: scale(1.05);
+            transform: translateY(-12px) scale(1.05);
+            box-shadow: 0 0 60px rgba(0,212,255,0.4);
         }
+
         .restaurant-card img {
             width: 100%;
-            height: auto;
-            border-radius: 10px;
+            border-radius: 16px;
+            margin-bottom: 20px;
         }
+
         .restaurant-card h2 {
-            margin: 15px 0 5px;
-            color: #222;
+            font-size: 1.8rem;
+            color: var(--accent);
+            text-align: center;
         }
     </style>
 </head>
@@ -51,9 +129,10 @@
         <option value="en">English</option>
         <option value="zh" selected>中文</option>
     </select>
+    
+    <!-- 登出按鈕 -->
+    <button class="logout-btn" onclick="logout()">登出</button>
 </div>
-
-<h1 data-en="Choose Your Restaurant" data-zh="選擇你的餐廳">選擇你的餐廳</h1>
 
 <div class="restaurant-grid">
     <!-- Dan Ryan's -->
@@ -70,12 +149,28 @@
 </div>
 
 <script>
+// 登入檢查
+if (localStorage.getItem('isAdminLoggedIn') !== 'true') {
+    window.location.href = 'login.html';
+}
+
+// 登出
+function logout() {
+    if (confirm('確定要登出嗎？')) {
+        localStorage.removeItem('isAdminLoggedIn');
+        localStorage.removeItem('loginTime'); // 如果有使用
+        window.location.href = 'login.html';
+    }
+}
+
     const translations = {
         en: {
-            'Choose Your Restaurant': 'Choose Your Restaurant'
+            'Dan Ryan\'s': 'Dan Ryan\'s',
+            'Niras': 'Niras'
         },
         zh: {
-            'Choose Your Restaurant': '選擇你的餐廳'
+            'Dan Ryan\'s': 'Dan Ryan\'s',
+            'Niras': 'Niras'
         }
     };
 
@@ -83,7 +178,7 @@
         const lang = document.getElementById('language-select').value;
         document.querySelectorAll('[data-en]').forEach(el => {
             const key = el.getAttribute('data-en');
-            if (translations[lang][key]) el.textContent = translations[lang][key];
+            el.textContent = translations[lang][key] || key;
         });
     }
 
