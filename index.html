@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
     <title>Restaurant Selection</title>
     <style>
 
@@ -169,7 +170,7 @@ function logout() {
             'Niras': 'Niras'
         },
         zh: {
-            'Dan Ryan\'s': 'Dan Ryan\'s',
+            'Dan Ryan\'s': '芝加哥燒烤餐廳',
             'Niras': 'Niras'
         }
     };
@@ -191,7 +192,7 @@ function logout() {
         
         if (input === correctPW) {
             localStorage.setItem('currentRestaurant', restaurant);
-            window.location.href = 'dashboard.html';
+            window.location.href = 'dashboarddanryans.html';
         } else {
             alert('密碼錯誤！ / Wrong password!');
         }

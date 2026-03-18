@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    <title>Dan Ryan's Recipes - 食譜</title>
+    <style>
+        :root {
+            --bg: #1a0f0a;
+            --text: #f5f0e6;
+            --accent: #c9a96e;
+            --accent-hover: #b38c4d;
+            --card-bg: rgba(40, 25, 15, 0.75);
+            --border: #8b6f47;
+            --glow: 0 0 15px rgba(201, 169, 110, 0.4);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            background: var(--bg) url('https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&q=80') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text);
+            font-family: 'Georgia', 'Times New Roman', serif;
+            min-height: 100vh;
+            line-height: 1.7;
+        }
+
+        .top-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .language-switch { display: flex; align-items: center; gap: 16px; }
+
+        select, button {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        select:hover, button:hover { background: var(--accent-hover); transform: translateY(-2px); }
+
+        .logout-btn { background: #8b0000; color: white; }
+        .logout-btn:hover { background: #a00000; }
+
+        .back-btn { background: var(--accent); color: #000; }
+        .back-btn:hover { background: var(--accent-hover); }
+
+        .container { max-width: 1200px; margin: 120px auto 80px; padding: 0 30px; }
+
+        h1 {
+            font-size: 3.2rem;
+            font-weight: 400;
+            text-align: center;
+            margin-bottom: 40px;
+            color: var(--accent);
+            text-shadow: 0 4px 12px rgba(0,0,0,0.6);
+        }
+
+        .compare-container { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
+
+        .compare-panel {
+            flex: 1;
+            min-width: 340px;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--glow);
+        }
+
+        .compare-panel h3 { font-size: 1.8rem; margin-bottom: 20px; color: var(--accent); text-align: center; }
+
+        .search-container { margin-bottom: 20px; }
+
+        .search-input {
+            width: 100%;
+            padding: 14px;
+            font-size: 1.1rem;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+        }
+
+        .display-area {
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(8px);
+            border-radius: 12px;
+            padding: 28px;
+            border: 1px solid var(--border);
+            min-height: 400px;
+        }
+
+        .display-area img {
+            display: block;
+            max-width: 90%;
+            margin: 0 auto 32px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+        }
+
+        .display-area h2 { font-size: 2.4rem; margin-bottom: 24px; color: var(--text); text-align: center; }
+
+        .display-area h3 { font-size: 1.6rem; color: var(--accent); margin: 32px 0 16px; }
+
+        .display-area ul, .display-area ol { font-size: 1.15rem; padding-left: 40px; margin-bottom: 24px; }
+
+        .display-area li { margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <button class="back-btn" onclick="history.back()" data-en="← Back" data-zh="← 上一頁">← Back</button>
+    
+    <div class="language-switch">
+        <select id="language-select" onchange="changeLanguage()">
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+        </select>
+        <button class="logout-btn" onclick="logout()">登出</button>
+    </div>
+</div>
+
+<div class="container">
+    <h1 data-en="Dan Ryan's Recipes" data-zh="芝加哥燒烤餐廳 食譜">芝加哥燒烤餐廳 食譜</h1>
+
+    <div class="compare-container">
+        <!-- 左邊 -->
+        <div class="compare-panel">
+            <h3 data-en="Left Recipe" data-zh="左邊食譜">左邊食譜</h3>
+            <div class="search-container">
+                <label data-en="Search or Select:" data-zh="搜尋或選擇：">搜尋或選擇：</label>
+                <input type="text" class="search-input" id="search-left" list="suggestions-left" placeholder="輸入關鍵字或直接選擇..." oninput="updateSuggestions('left')">
+                <datalist id="suggestions-left"></datalist>
+            </div>
+            <div id="display-left" class="display-area"></div>
+        </div>
+
+        <!-- 右邊 -->
+        <div class="compare-panel">
+            <h3 data-en="Right Recipe" data-zh="右邊食譜">右邊食譜</h3>
+            <div class="search-container">
+                <label data-en="Search or Select:" data-zh="搜尋或選擇：">搜尋或選擇：</label>
+                <input type="text" class="search-input" id="search-right" list="suggestions-right" placeholder="輸入關鍵字或直接選擇..." oninput="updateSuggestions('right')">
+                <datalist id="suggestions-right"></datalist>
+            </div>
+            <div id="display-right" class="display-area"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 登入檢查與登出
+if (localStorage.getItem('isAdminLoggedIn') !== 'true') {
+    window.location.href = 'login.html';
+}
+
+function logout() {
+    if (confirm('確定要登出嗎？')) {
+        localStorage.removeItem('isAdminLoggedIn');
+        localStorage.removeItem('loginTime');
+        window.location.href = 'login.html';
+    }
+}
+
+// Google Apps Script URL（請確認是你的 Dan Ryan's 專案）
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz0H09wZ2D2qR6AWhGVlRY07oQh4jCo1XtKrrf_RMuo1HMC-R_Q5tiuu52ntc8MzmPs/exec';
+
+let recipes = [];
+
+// 載入食譜
+async function loadRecipes() {
+    try {
+        const res = await fetch(WEB_APP_URL);
+        recipes = await res.json();
+        recipes.sort((a, b) => (a.name_en || '').localeCompare(b.name_en || ''));
+    } catch (e) {
+        alert('無法連線到 Google Sheet！請確認 Web App URL 正確');
+        console.error(e);
+    }
+}
+
+// 更新建議清單（像 Google / SuperGrok 一樣）
+function updateSuggestions(side) {
+    const lang = document.getElementById('language-select').value;
+    const input = document.getElementById(`search-${side}`).value.toLowerCase().trim();
+    const datalist = document.getElementById(`suggestions-${side}`);
+    datalist.innerHTML = '';
+
+    // 過濾匹配項目（中英文都支援）
+    const filtered = recipes.filter(r => {
+        const name_en = (r.name_en || '').toLowerCase();
+        const name_zh = (r.name_zh || '').toLowerCase();
+        return name_en.includes(input) || name_zh.includes(input);
+    });
+
+    // 生成建議選項
+    filtered.forEach(r => {
+        const option = document.createElement('option');
+        option.value = lang === 'zh' ? (r.name_zh || r.name_en) : (r.name_en || r.name_zh);
+        datalist.appendChild(option);
+    });
+
+    // 如果輸入完全匹配某個名稱，自動顯示
+    const exactMatch = filtered.find(r => {
+        const name = lang === 'zh' ? (r.name_zh || r.name_en) : r.name_en;
+        return name.toLowerCase() === input;
+    });
+    if (exactMatch) {
+        renderDisplay(side, exactMatch.id);
+    } else {
+        document.getElementById(`display-${side}`).innerHTML = '';
+    }
+}
+
+// 渲染食譜內容（教課書風格）
+function renderDisplay(side, id) {
+    const lang = document.getElementById('language-select').value;
+    const recipe = recipes.find(r => r.id === id);
+    if (!recipe) return;
+
+    const container = document.getElementById(`display-${side}`);
+    let html = '';
+
+    if (recipe.photo_url) {
+        html += `<img src="${recipe.photo_url}" alt="${recipe.name_en || recipe.name_zh}" style="display:block; max-width:90%; margin:0 auto 32px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.6);">`;
+    }
+
+    html += `<h2 style="font-size:2.4rem; margin-bottom:24px; color:var(--text); text-align:center;">${lang === 'zh' ? (recipe.name_zh || recipe.name_en) : (recipe.name_en || recipe.name_zh)}</h2>`;
+
+    html += `<h3 style="font-size:1.6rem; color:var(--accent); margin:32px 0 12px;">${lang === 'zh' ? '完成份量' : 'Yield'}</h3>`;
+    html += `<p style="font-size:1.2rem; margin-bottom:32px;">${recipe.yield || (lang === 'zh' ? '1份' : '1 serving')}</p>`;
+
+    html += `<h3 style="font-size:1.6rem; color:var(--accent); margin:32px 0 16px;">${lang === 'zh' ? '材料' : 'Ingredients'}</h3>`;
+    html += `<ul style="font-size:1.15rem; padding-left:40px; margin-bottom:32px;">`;
+    (recipe.ingredients || []).forEach(item => {
+        html += `<li style="margin-bottom:12px;">${item}</li>`;
+    });
+    html += `</ul>`;
+
+    html += `<h3 style="font-size:1.6rem; color:var(--accent); margin:48px 0 16px;">${lang === 'zh' ? '步驟' : 'Steps'}</h3>`;
+    html += `<ol style="font-size:1.15rem; padding-left:40px;">`;
+    (recipe.steps || []).forEach(step => {
+        html += `<li style="margin-bottom:16px;">${step}</li>`;
+    });
+    html += `</ol>`;
+
+    container.innerHTML = html;
+}
+
+// 語言切換
+function changeLanguage() {
+    const lang = document.getElementById('language-select').value;
+    localStorage.setItem('preferredLanguage', lang);
+    document.querySelectorAll('[data-en]').forEach(el => {
+        const key = el.getAttribute('data-en');
+        el.textContent = translations[lang][key] || key;
+    });
+}
+
+// 初始化
+window.onload = async () => {
+    await loadRecipes();
+    const savedLang = localStorage.getItem('preferredLanguage') || 'zh';
+    document.getElementById('language-select').value = savedLang;
+    changeLanguage();
+    // 初始顯示所有建議（不輸入時也能看到全部）
+    updateSuggestions('left');
+    updateSuggestions('right');
+};
+</script>
+
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    <title>Dan Ryan's Dashboard - 控制面板</title>
+    <style>
+        :root {
+            --bg: #1a0f0a;                /* 深咖啡/木質背景 */
+            --text: #f5f0e6;              /* 米白文字 */
+            --accent: #c9a96e;            /* 銅金色按鈕 */
+            --accent-hover: #b38c4d;
+            --card-bg: rgba(40, 25, 15, 0.75);
+            --border: #8b6f47;
+            --glow: 0 0 15px rgba(201, 169, 110, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg) url('https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&q=80') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text);
+            font-family: 'Georgia', 'Times New Roman', serif;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .language-switch {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        select, button {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        select:hover, button:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        .logout-btn {
+            background: #8b0000;
+            color: white;
+        }
+
+        .logout-btn:hover {
+            background: #a00000;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 120px auto 60px;
+            padding: 0 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3.2rem;
+            font-weight: 400;
+            margin-bottom: 20px;
+            color: var(--accent);
+            text-shadow: 0 4px 12px rgba(0,0,0,0.6);
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: #d4c9b0;
+            margin-bottom: 60px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .option-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px 24px;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            box-shadow: var(--glow);
+        }
+
+        .option-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 0 40px rgba(201,169,110,0.5);
+        }
+
+        .option-card span {
+            font-size: 3.5rem;
+            display: block;
+            margin-bottom: 16px;
+            color: var(--accent);
+        }
+
+        .option-card .label {
+            font-size: 1.6rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .option-card .desc {
+            font-size: 1.05rem;
+            color: #d4c9b0;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <button class="back-btn" onclick="history.back()" data-en="← Back" data-zh="← 上一頁">← Back</button>
+    
+    <div class="language-switch">
+        <select id="language-select" onchange="changeLanguage()">
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+        </select>
+        <button class="logout-btn" onclick="logout()">登出</button>
+    </div>
+</div>
+
+<div class="container">
+    <h1 id="welcome-title">Dan Ryan's Dashboard</h1>
+    <div class="subtitle" id="restaurant-name">Dan Ryan's Chicago Grill</div>
+
+    <div class="options-grid">
+        <div class="option-card" onclick="goTo('calendar')">
+            <span>📅</span>
+            <div class="label" data-en="Calendar" data-zh="日曆">Calendar</div>
+            <div class="desc" data-en="Manage schedules" data-zh="管理日程">Manage schedules</div>
+        </div>
+
+        <div class="option-card" onclick="goTo('recipes')">
+            <span>🍽️</span>
+            <div class="label" data-en="Recipes" data-zh="食譜">Recipes</div>
+            <div class="desc" data-en="View & manage kitchen recipes" data-zh="查看和管理廚房食譜">View & manage kitchen recipes</div>
+        </div>
+
+        <div class="option-card" onclick="goTo('supplier')">
+            <span>📦</span>
+            <div class="label" data-en="Supplier List" data-zh="供應商清單">Supplier List</div>
+            <div class="desc" data-en="Ingredient suppliers" data-zh="食材供應商">Ingredient suppliers</div>
+        </div>
+
+        <div class="option-card" onclick="goTo('labour')">
+            <span>👷</span>
+            <div class="label" data-en="Labour Schedule" data-zh="員工排班">Labour Schedule</div>
+            <div class="desc" data-en="Staff shifts & roster" data-zh="員工班表">Staff shifts & roster</div>
+        </div>
+
+        <div class="option-card" onclick="goTo('timer')">
+            <span>⏲️</span>
+            <div class="label" data-en="Kitchen Timer" data-zh="廚房計時器">Kitchen Timer</div>
+            <div class="desc" data-en="Cooking & prep timers" data-zh="烹飪與準備計時">Cooking & prep timers</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 登入檢查
+if (localStorage.getItem('isAdminLoggedIn') !== 'true') {
+    window.location.href = 'login.html';
+}
+
+// 登出
+function logout() {
+    if (confirm('確定要登出嗎？')) {
+        localStorage.removeItem('isAdminLoggedIn');
+        localStorage.removeItem('loginTime');
+        window.location.href = 'login.html';
+    }
+}
+
+// 翻譯資料
+const translations = {
+    en: {
+        'Dan Ryan\'s Dashboard': 'Dan Ryan\'s Dashboard',
+        '← Back': '← Back',
+        'Calendar': 'Calendar',
+        'Recipes': 'Recipes',
+        'Supplier List': 'Supplier List',
+        'Labour Schedule': 'Labour Schedule',
+        'Kitchen Timer': 'Kitchen Timer',
+        'Manage schedules': 'Manage schedules',
+        'View & manage kitchen recipes': 'View & manage kitchen recipes',
+        'Ingredient suppliers': 'Ingredient suppliers',
+        'Staff shifts & roster': 'Staff shifts & roster',
+        'Cooking & prep timers': 'Cooking & prep timers'
+    },
+    zh: {
+        'Dan Ryan\'s Dashboard': 'Dan Ryan\'s 控制面板',
+        '← Back': '← 上一頁',
+        'Calendar': '日曆',
+        'Recipes': '食譜',
+        'Supplier List': '供應商清單',
+        'Labour Schedule': '員工排班',
+        'Kitchen Timer': '廚房計時器',
+        'Manage schedules': '管理日程',
+        'View & manage kitchen recipes': '查看和管理廚房食譜',
+        'Ingredient suppliers': '食材供應商',
+        'Staff shifts & roster': '員工班表',
+        'Cooking & prep timers': '烹飪與準備計時'
+    }
+};
+
+// 語言切換函數
+function changeLanguage() {
+    const lang = document.getElementById('language-select').value;
+    localStorage.setItem('preferredLanguage', lang);  // 儲存語言選擇
+
+    document.querySelectorAll('[data-en]').forEach(el => {
+        const key = el.getAttribute('data-en');
+        el.textContent = translations[lang][key] || key;
+    });
+
+    document.getElementById('welcome-title').textContent = translations[lang]['Dan Ryan\'s Dashboard'];
+}
+
+// 功能跳轉
+function goTo(page) {
+    if (page === 'recipes') {
+        window.location.href = 'recipesdanryans.html';
+    } else {
+        alert('此功能開發中... / This feature is coming soon...');
+    }
+}
+
+// 初始化：載入上次語言並套用
+window.onload = () => {
+    const savedLang = localStorage.getItem('preferredLanguage') || 'zh';
+    document.getElementById('language-select').value = savedLang;
+    changeLanguage();
+};
+</script>
+
+</body>
+</html>
