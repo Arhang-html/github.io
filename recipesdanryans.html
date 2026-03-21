@@ -14,12 +14,13 @@
             --card-bg: rgba(40, 25, 15, 0.75);
             --border: #8b6f47;
             --glow: 0 0 15px rgba(201, 169, 110, 0.4);
+            --title-glow: 0 4px 20px rgba(201,169,110,0.7); /* 加深標題陰影 */
         }
 
         * { margin:0; padding:0; box-sizing:border-box; }
 
         body {
-            background: var(--bg) url('https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&q=80') no-repeat center center fixed;
+            background: var(--bg) url('recipesdanryansbackground.jpg') no-repeat center center fixed;
             background-size: cover;
             color: var(--text);
             font-family: 'Georgia', 'Times New Roman', serif;
@@ -30,8 +31,8 @@
         .top-bar {
             position: fixed;
             top: 0; left: 0; right: 0;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
             padding: 15px 30px;
             display: flex;
             justify-content: space-between;
@@ -68,8 +69,8 @@
             font-weight: 400;
             text-align: center;
             margin-bottom: 40px;
-            color: var(--accent);
-            text-shadow: 0 4px 12px rgba(0,0,0,0.6);
+            color: #e6d4a8; /* 加深標題顏色，更亮金色 */
+            text-shadow: var(--title-glow); /* 加深陰影，讓文字更突出 */
         }
 
         .compare-container { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
@@ -85,7 +86,12 @@
             box-shadow: var(--glow);
         }
 
-        .compare-panel h3 { font-size: 1.8rem; margin-bottom: 20px; color: var(--accent); text-align: center; }
+        .compare-panel h3 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--accent);
+            text-align: center;
+        }
 
         .search-container { margin-bottom: 20px; }
 
@@ -106,14 +112,17 @@
             padding: 28px;
             border: 1px solid var(--border);
             min-height: 400px;
+            position: relative; /* 讓圖片可以定位 */
+            overflow: hidden;
         }
 
-        .display-area img {
-            display: block;
-            max-width: 90%;
-            margin: 0 auto 32px;
+        .display-area .recipe-photo {
+            float: right;
+            width: 40%;
+            max-width: 300px;
+            margin: 0 0 20px 20px;
             border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
         }
 
         .display-area h2 { font-size: 2.4rem; margin-bottom: 24px; color: var(--text); text-align: center; }
@@ -143,9 +152,9 @@
     <h1 data-en="Dan Ryan's Recipes" data-zh="芝加哥燒烤餐廳 食譜">芝加哥燒烤餐廳 食譜</h1>
 
     <div class="compare-container">
-        <!-- 左邊 -->
+        <!-- 左邊食譜 -->
         <div class="compare-panel">
-            <h3 data-en="Left Recipe" data-zh="左邊食譜">左邊食譜</h3>
+            <h3 data-en="Recipe 1" data-zh="食譜1">食譜1</h3>
             <div class="search-container">
                 <label data-en="Search or Select:" data-zh="搜尋或選擇：">搜尋或選擇：</label>
                 <input type="text" class="search-input" id="search-left" list="suggestions-left" placeholder="輸入關鍵字或直接選擇..." oninput="updateSuggestions('left')">
@@ -154,9 +163,9 @@
             <div id="display-left" class="display-area"></div>
         </div>
 
-        <!-- 右邊 -->
+        <!-- 右邊食譜 -->
         <div class="compare-panel">
-            <h3 data-en="Right Recipe" data-zh="右邊食譜">右邊食譜</h3>
+            <h3 data-en="Recipe 2" data-zh="食譜2">食譜2</h3>
             <div class="search-container">
                 <label data-en="Search or Select:" data-zh="搜尋或選擇：">搜尋或選擇：</label>
                 <input type="text" class="search-input" id="search-right" list="suggestions-right" placeholder="輸入關鍵字或直接選擇..." oninput="updateSuggestions('right')">
@@ -198,15 +207,16 @@ async function loadRecipes() {
     }
 }
 
-// 更新建議清單（像 Google / SuperGrok 一樣）
+// 更新建議清單（像 Google Search 一樣）
 function updateSuggestions(side) {
     const lang = document.getElementById('language-select').value;
     const input = document.getElementById(`search-${side}`).value.toLowerCase().trim();
     const datalist = document.getElementById(`suggestions-${side}`);
     datalist.innerHTML = '';
 
-    // 過濾匹配項目（中英文都支援）
+    // 過濾匹配項目（沒輸入時顯示全部）
     const filtered = recipes.filter(r => {
+        if (!input) return true;
         const name_en = (r.name_en || '').toLowerCase();
         const name_zh = (r.name_zh || '').toLowerCase();
         return name_en.includes(input) || name_zh.includes(input);
@@ -231,7 +241,7 @@ function updateSuggestions(side) {
     }
 }
 
-// 渲染食譜內容（教課書風格）
+// 渲染食譜內容（教課書風格，圖片右上角）
 function renderDisplay(side, id) {
     const lang = document.getElementById('language-select').value;
     const recipe = recipes.find(r => r.id === id);
@@ -240,15 +250,23 @@ function renderDisplay(side, id) {
     const container = document.getElementById(`display-${side}`);
     let html = '';
 
+    // 照片放在右上角
     if (recipe.photo_url) {
-        html += `<img src="${recipe.photo_url}" alt="${recipe.name_en || recipe.name_zh}" style="display:block; max-width:90%; margin:0 auto 32px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.6);">`;
+        html += `
+            <img src="${recipe.photo_url}" alt="${recipe.name_en || recipe.name_zh}" 
+                 style="float:right; width:40%; max-width:300px; margin:0 0 20px 20px; 
+                        border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.6);">
+        `;
     }
 
-    html += `<h2 style="font-size:2.4rem; margin-bottom:24px; color:var(--text); text-align:center;">${lang === 'zh' ? (recipe.name_zh || recipe.name_en) : (recipe.name_en || recipe.name_zh)}</h2>`;
+    // 食譜標題（字體與其他 h3 一樣）
+    html += `<h2 style="font-size:1.6rem; margin-bottom:24px; color:var(--text); text-align:center;">${lang === 'zh' ? (recipe.name_zh || recipe.name_en) : (recipe.name_en || recipe.name_zh)}</h2>`;
 
+    // 完成份量
     html += `<h3 style="font-size:1.6rem; color:var(--accent); margin:32px 0 12px;">${lang === 'zh' ? '完成份量' : 'Yield'}</h3>`;
     html += `<p style="font-size:1.2rem; margin-bottom:32px;">${recipe.yield || (lang === 'zh' ? '1份' : '1 serving')}</p>`;
 
+    // 材料
     html += `<h3 style="font-size:1.6rem; color:var(--accent); margin:32px 0 16px;">${lang === 'zh' ? '材料' : 'Ingredients'}</h3>`;
     html += `<ul style="font-size:1.15rem; padding-left:40px; margin-bottom:32px;">`;
     (recipe.ingredients || []).forEach(item => {
@@ -256,6 +274,7 @@ function renderDisplay(side, id) {
     });
     html += `</ul>`;
 
+    // 步驟
     html += `<h3 style="font-size:1.6rem; color:var(--accent); margin:48px 0 16px;">${lang === 'zh' ? '步驟' : 'Steps'}</h3>`;
     html += `<ol style="font-size:1.15rem; padding-left:40px;">`;
     (recipe.steps || []).forEach(step => {
@@ -282,7 +301,6 @@ window.onload = async () => {
     const savedLang = localStorage.getItem('preferredLanguage') || 'zh';
     document.getElementById('language-select').value = savedLang;
     changeLanguage();
-    // 初始顯示所有建議（不輸入時也能看到全部）
     updateSuggestions('left');
     updateSuggestions('right');
 };
