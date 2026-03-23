@@ -14,7 +14,6 @@
             --card-bg: rgba(40, 25, 15, 0.75);
             --border: #8b6f47;
             --glow: 0 0 15px rgba(201, 169, 110, 0.4);
-            --title-glow: 0 4px 20px rgba(201,169,110,0.7); /* 加深標題陰影 */
         }
 
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -69,20 +68,20 @@
             font-weight: 400;
             text-align: center;
             margin-bottom: 40px;
-            color: #e6d4a8; /* 加深標題顏色，更亮金色 */
-            text-shadow: var(--title-glow); /* 加深陰影，讓文字更突出 */
+            color: #e6d4a8;
+            text-shadow: 0 4px 20px rgba(201,169,110,0.7);
         }
 
         .compare-container { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
 
         .compare-panel {
             flex: 1;
-            min-width: 340px;
+            min-width: 420px;
             background: var(--card-bg);
             backdrop-filter: blur(10px);
             border: 1px solid var(--border);
             border-radius: 16px;
-            padding: 32px;
+            padding: 36px;
             box-shadow: var(--glow);
         }
 
@@ -112,7 +111,7 @@
             padding: 28px;
             border: 1px solid var(--border);
             min-height: 400px;
-            position: relative; /* 讓圖片可以定位 */
+            position: relative;
             overflow: hidden;
         }
 
@@ -125,11 +124,24 @@
             box-shadow: 0 8px 30px rgba(0,0,0,0.6);
         }
 
-        .display-area h2 { font-size: 2.4rem; margin-bottom: 24px; color: var(--text); text-align: center; }
+        .display-area h2 {
+            font-size: 1.6rem;
+            margin-bottom: 24px;
+            color: var(--text);
+            text-align: center;
+        }
 
-        .display-area h3 { font-size: 1.6rem; color: var(--accent); margin: 32px 0 16px; }
+        .display-area h3 {
+            font-size: 1.6rem;
+            color: var(--accent);
+            margin: 32px 0 16px;
+        }
 
-        .display-area ul, .display-area ol { font-size: 1.15rem; padding-left: 40px; margin-bottom: 24px; }
+        .display-area ul, .display-area ol {
+            font-size: 1.15rem;
+            padding-left: 40px;
+            margin-bottom: 24px;
+        }
 
         .display-area li { margin-bottom: 12px; }
     </style>
@@ -154,7 +166,7 @@
     <div class="compare-container">
         <!-- 左邊食譜 -->
         <div class="compare-panel">
-            <h3 data-en="Recipe 1" data-zh="食譜1">食譜1</h3>
+            <h3 data-en="Recipe 1" data-zh="食譜 1">食譜 1</h3>
             <div class="search-container">
                 <label data-en="Search or Select:" data-zh="搜尋或選擇：">搜尋或選擇：</label>
                 <input type="text" class="search-input" id="search-left" list="suggestions-left" placeholder="輸入關鍵字或直接選擇..." oninput="updateSuggestions('left')">
@@ -165,7 +177,7 @@
 
         <!-- 右邊食譜 -->
         <div class="compare-panel">
-            <h3 data-en="Recipe 2" data-zh="食譜2">食譜2</h3>
+            <h3 data-en="Recipe 2" data-zh="食譜 2">食譜 2</h3>
             <div class="search-container">
                 <label data-en="Search or Select:" data-zh="搜尋或選擇：">搜尋或選擇：</label>
                 <input type="text" class="search-input" id="search-right" list="suggestions-right" placeholder="輸入關鍵字或直接選擇..." oninput="updateSuggestions('right')">
@@ -190,7 +202,7 @@ function logout() {
     }
 }
 
-// Google Apps Script URL（請確認是你的 Dan Ryan's 專案）
+// Google Apps Script URL（請替換成你的實際 URL）
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz0H09wZ2D2qR6AWhGVlRY07oQh4jCo1XtKrrf_RMuo1HMC-R_Q5tiuu52ntc8MzmPs/exec';
 
 let recipes = [];
@@ -214,7 +226,7 @@ function updateSuggestions(side) {
     const datalist = document.getElementById(`suggestions-${side}`);
     datalist.innerHTML = '';
 
-    // 過濾匹配項目（沒輸入時顯示全部）
+// 過濾匹配項目（沒輸入時顯示全部）
     const filtered = recipes.filter(r => {
         if (!input) return true;
         const name_en = (r.name_en || '').toLowerCase();
@@ -222,17 +234,17 @@ function updateSuggestions(side) {
         return name_en.includes(input) || name_zh.includes(input);
     });
 
-    // 生成建議選項
+ // 生成建議選項
     filtered.forEach(r => {
         const option = document.createElement('option');
         option.value = lang === 'zh' ? (r.name_zh || r.name_en) : (r.name_en || r.name_zh);
         datalist.appendChild(option);
     });
 
-    // 如果輸入完全匹配某個名稱，自動顯示
+// 如果輸入完全匹配某個名稱，才自動顯示
     const exactMatch = filtered.find(r => {
         const name = lang === 'zh' ? (r.name_zh || r.name_en) : r.name_en;
-        return name.toLowerCase() === input;
+        return name && name.toLowerCase() === input;
     });
     if (exactMatch) {
         renderDisplay(side, exactMatch.id);
@@ -245,12 +257,16 @@ function updateSuggestions(side) {
 function renderDisplay(side, id) {
     const lang = document.getElementById('language-select').value;
     const recipe = recipes.find(r => r.id === id);
-    if (!recipe) return;
+    if (!recipe) {
+        document.getElementById(`display-${side}`).innerHTML = '';
+        return;
+    }
 
     const container = document.getElementById(`display-${side}`);
     let html = '';
 
-    // 照片放在右上角
+
+// 照片放在右上角
     if (recipe.photo_url) {
         html += `
             <img src="${recipe.photo_url}" alt="${recipe.name_en || recipe.name_zh}" 
@@ -258,15 +274,19 @@ function renderDisplay(side, id) {
                         border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.6);">
         `;
     }
-
-    // 食譜標題（字體與其他 h3 一樣）
+// 食譜標題（字體與其他 h3 一樣）
     html += `<h2 style="font-size:1.6rem; margin-bottom:24px; color:var(--text); text-align:center;">${lang === 'zh' ? (recipe.name_zh || recipe.name_en) : (recipe.name_en || recipe.name_zh)}</h2>`;
 
-    // 完成份量
-    html += `<h3 style="font-size:1.6rem; color:var(--accent); margin:32px 0 12px;">${lang === 'zh' ? '完成份量' : 'Yield'}</h3>`;
-    html += `<p style="font-size:1.2rem; margin-bottom:32px;">${recipe.yield || (lang === 'zh' ? '1份' : '1 serving')}</p>`;
+// 完成份量（只有有值才顯示）
 
-    // 材料
+if (recipe.servings && recipe.servings.trim() !== '') {
+    html += `<h3 style="font-size:1.6rem; color:var(--accent); margin:32px 0 12px;">${lang === 'zh' ? '完成份量' : 'Yield'}</h3>`;
+    html += `<p style="font-size:1.15rem; padding-left:40px; margin-bottom:32px;">${recipe.servings.trim()}</p>`;
+}
+
+
+
+// 材料
     html += `<h3 style="font-size:1.6rem; color:var(--accent); margin:32px 0 16px;">${lang === 'zh' ? '材料' : 'Ingredients'}</h3>`;
     html += `<ul style="font-size:1.15rem; padding-left:40px; margin-bottom:32px;">`;
     (recipe.ingredients || []).forEach(item => {
@@ -274,7 +294,8 @@ function renderDisplay(side, id) {
     });
     html += `</ul>`;
 
-    // 步驟
+
+// 步驟
     html += `<h3 style="font-size:1.6rem; color:var(--accent); margin:48px 0 16px;">${lang === 'zh' ? '步驟' : 'Steps'}</h3>`;
     html += `<ol style="font-size:1.15rem; padding-left:40px;">`;
     (recipe.steps || []).forEach(step => {
@@ -293,7 +314,34 @@ function changeLanguage() {
         const key = el.getAttribute('data-en');
         el.textContent = translations[lang][key] || key;
     });
+    // 重新更新建議
+    updateSuggestions('left');
+    updateSuggestions('right');
 }
+
+// 翻譯資料
+const translations = {
+    en: {
+        'Dan Ryan\'s Recipes': 'Dan Ryan\'s Recipes',
+        '← Back': '← Back',
+        'Recipe 1': 'Recipe 1',
+        'Recipe 2': 'Recipe 2',
+        'Search or Select:': 'Search or Select:',
+        'Yield': 'Yield',
+        'Ingredients': 'Ingredients',
+        'Steps': 'Steps'
+    },
+    zh: {
+        'Dan Ryan\'s Recipes': '芝加哥燒烤餐廳 食譜',
+        '← Back': '← 上一頁',
+        'Recipe 1': '食譜 1',
+        'Recipe 2': '食譜 2',
+        'Search or Select:': '搜尋或選擇：',
+        'Yield': '完成份量',
+        'Ingredients': '材料',
+        'Steps': '步驟'
+    }
+};
 
 // 初始化
 window.onload = async () => {
