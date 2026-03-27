@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    <title>Dan Ryan's Daily Receiving - 每日收貨紀錄</title>
+    <style>
+        :root {
+            --bg: #1a0f0a; --text: #f5f0e6; --accent: #c9a96e; --accent-hover: #b38c4d;
+            --card-bg: rgba(40, 25, 15, 0.78); --border: #8b6f47; --glow: 0 0 15px rgba(201, 169, 110, 0.4);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: var(--bg) url('https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&q=80') no-repeat center center fixed;
+            background-size: cover; color: var(--text); font-family: 'Georgia', 'Times New Roman', serif;
+            min-height: 100vh; line-height: 1.7;
+        }
+        .top-bar { position: fixed; top: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); 
+                   padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; 
+                   z-index: 1000; border-bottom: 1px solid var(--border); }
+        .language-switch { display: flex; align-items: center; gap: 16px; }
+        select, button { background: var(--accent); color: #000; border: none; padding: 10px 20px; 
+                         border-radius: 6px; font-size: 1rem; cursor: pointer; transition: all 0.3s; }
+        select:hover, button:hover { background: var(--accent-hover); transform: translateY(-2px); }
+        .logout-btn { background: #8b0000; color: white; }
+        .back-btn { background: var(--accent); color: #000; }
+
+        .container { max-width: 1400px; margin: 120px auto 80px; padding: 0 30px; }
+        .date-header { text-align: center; font-size: 1.85rem; color: #e6d4a8; margin-bottom: 25px; text-shadow: 0 4px 15px rgba(0,0,0,0.6); }
+        h1 { font-size: 3.2rem; text-align: center; margin-bottom: 40px; color: #e6d4a8; text-shadow: 0 4px 20px rgba(201,169,110,0.7); }
+
+        .tab-bar { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+        .tab { padding: 12px 36px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 30px; 
+               cursor: pointer; font-size: 1.15rem; }
+        .tab.active { background: var(--accent); color: #000; font-weight: 500; }
+
+        .search-bar { width: 100%; max-width: 700px; margin: 0 auto 35px; padding: 14px 20px; font-size: 1.1rem; 
+                      background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 50px; color: var(--text); }
+
+        .receiving-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(520px, 1fr)); gap: 28px; }
+
+        .receiving-card { 
+            background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid var(--border); 
+            border-radius: 16px; padding: 30px; box-shadow: var(--glow); 
+        }
+        .supplier-name { font-size: 1.7rem; color: var(--accent); margin-bottom: 16px; cursor: pointer; }
+        .supplier-name:hover { color: var(--accent-hover); text-decoration: underline; }
+        .info-line { margin-bottom: 11px; font-size: 1.08rem; }
+        .status { font-weight: 600; font-size: 1.15rem; }
+        .status.pending { color: #facc15; }
+        .status.received { color: #4ade80; }
+        .checkbox-container { display: flex; align-items: center; gap: 12px; margin-top: 18px; font-size: 1.08rem; }
+        input[type="checkbox"] { width: 24px; height: 24px; accent-color: #c9a96e; }
+
+        /* 供應商詳細頁面樣式 */
+        .detail-container { max-width: 100%; }
+        .detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; }
+        .detail-supplier-name { font-size: 2.6rem; color: #e6d4a8; margin: 0; }
+        .detail-back-btn { background: var(--accent); color: #000; padding: 10px 24px; border-radius: 30px; font-size: 1.1rem; }
+
+        .supplier-info-card {
+            background: rgba(30,20,12,0.95);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 30px;
+            box-shadow: var(--glow);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 18px;
+        }
+        .info-item { font-size: 1.1rem; }
+        .info-item strong { color: var(--accent); display: block; font-size: 0.95rem; margin-bottom: 4px; }
+
+        table { 
+            width: 100%; border-collapse: collapse; background: rgba(30,20,12,0.95); 
+            border-radius: 12px; overflow: hidden; box-shadow: var(--glow); 
+        }
+        th, td { padding: 16px 20px; text-align: left; border-bottom: 1px solid var(--border); font-size: 1.05rem; }
+        th { background: rgba(201,169,110,0.25); color: var(--accent); font-weight: 600; }
+        tr:hover { background: rgba(201,169,110,0.12); }
+
+        .preview-table { margin-top: 18px; }
+        .no-data { text-align:center; color:#888; padding:80px 20px; grid-column:1/-1; }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <button class="back-btn" onclick="history.back()" data-en="← Back" data-zh="← 上一頁">← Back</button>
+    <div class="language-switch">
+        <select id="language-select" onchange="changeLanguage()">
+            <option value="en">English</option>
+            <option value="zh" selected>中文</option>
+        </select>
+        <button class="logout-btn" onclick="logout()">登出</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="date-header" id="current-date"></div>
+    <h1 data-en="Daily Receiving Record" data-zh="每日收貨紀錄">每日收貨紀錄</h1>
+
+    <div class="tab-bar">
+        <div class="tab active" id="tab-today" onclick="switchTab('today')">當日收貨紀錄</div>
+        <div class="tab" id="tab-history" onclick="switchTab('history')">已訂貨紀錄</div>
+        <div class="tab" id="tab-suppliers" onclick="switchTab('suppliers')">供應商資料</div>
+    </div>
+
+    <input type="text" class="search-bar" id="search-input" placeholder="搜尋供應商或貨品..." oninput="filterCurrentTab()">
+
+    <div class="receiving-grid" id="receiving-grid"></div>
+</div>
+
+<script>
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxjee_vsyHEsfWYxT5WGo80q2dzIrcTZD7Hq6aWHMWZp0lsy4qp97iq3viEBA1D5d7j9A/exec";
+
+let receivingList = [];
+let supplierList = [];
+let currentTab = 'today';
+let currentSupplierView = 'list';   // list 或 detail
+let selectedSupplier = null;
+
+// 登入檢查
+if (localStorage.getItem('isAdminLoggedIn') !== 'true') window.location.href = 'login.html';
+
+function logout() {
+    if (confirm('確定要登出嗎？')) {
+        localStorage.removeItem('isAdminLoggedIn');
+        window.location.href = 'login.html';
+    }
+}
+
+function showCurrentDate() {
+    const now = new Date();
+    const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+    document.getElementById('current-date').textContent = now.toLocaleDateString('zh-TW', options);
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return String(dateStr).trim();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function formatDateOnly(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return String(dateStr).trim();
+    return formatDate(date);
+}
+
+// 同時載入兩個 sheet
+async function loadData() {
+    try {
+        const res1 = await fetch(WEB_APP_URL + "?sheet=DailyReceiving");
+        receivingList = await res1.json();
+
+        const res2 = await fetch(WEB_APP_URL + "?sheet=SupplierList");
+        supplierList = await res2.json();
+
+        switchTab('today');
+    } catch (e) {
+        alert('無法連線到 Google Sheet！\n' + e.message);
+    }
+}
+
+function switchTab(tab) {
+    currentTab = tab;
+    if (tab === 'suppliers') {
+        currentSupplierView = 'list';
+        selectedSupplier = null;
+    }
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    const tabId = tab === 'today' ? 'tab-today' : tab === 'history' ? 'tab-history' : 'tab-suppliers';
+    document.getElementById(tabId).classList.add('active');
+    
+    // 重要：每次切換 tab 都立即執行一次過濾（讓搜尋欄保持作用）
+    filterCurrentTab();
+}
+
+function filterCurrentTab() {
+    const keyword = document.getElementById('search-input').value.toLowerCase().trim();
+    const grid = document.getElementById('receiving-grid');
+
+    if (currentTab === 'suppliers') {
+        renderSupplierView(keyword);
+    } else {
+        // 原有「當日收貨」與「已訂貨」功能不變
+        let filtered = receivingList;
+        const todayStr = formatDate(new Date());
+
+        if (currentTab === 'today') {
+            filtered = filtered.filter(item => formatDate(item.DeliveryDate) === todayStr);
+        } else {
+            filtered = filtered
+                .filter(item => formatDate(item.DeliveryDate) >= todayStr)
+                .sort((a, b) => new Date(formatDate(a.DeliveryDate)) - new Date(formatDate(b.DeliveryDate)));
+        }
+
+        if (keyword) {
+            filtered = filtered.filter(item => 
+                (item.Supplier || '').toLowerCase().includes(keyword) ||
+                (item.Supplier_zh || '').toLowerCase().includes(keyword) ||
+                (item.Products || '').toLowerCase().includes(keyword)
+            );
+        }
+        renderGrid(filtered);
+    }
+}
+
+// ====================== 供應商資料頁面（搜尋欄全程有效） ======================
+function renderSupplierView(keyword) {
+    const grid = document.getElementById('receiving-grid');
+    grid.innerHTML = '';
+
+    // 如果目前在詳細頁面，就顯示詳細內容（但仍保留搜尋欄）
+    if (currentSupplierView === 'detail' && selectedSupplier) {
+        renderSupplierDetail(keyword);   // 傳入 keyword，讓詳細頁面也能支援搜尋
+        return;
+    }
+
+    let filtered = supplierList;
+    if (keyword) {
+        filtered = filtered.filter(item => 
+            (item.供應商名稱 || '').toLowerCase().includes(keyword) ||
+            (item.商品中文名稱 || '').toLowerCase().includes(keyword) ||
+            (item.商品英文名稱 || '').toLowerCase().includes(keyword) ||
+            (item.商品名稱 || '').toLowerCase().includes(keyword)
+        );
+    }
+
+    const groups = {};
+    filtered.forEach(item => {
+        const name = (item.供應商名稱 || '未知供應商').trim();
+        if (!groups[name]) groups[name] = [];
+        groups[name].push(item);
+    });
+
+    Object.keys(groups).sort().forEach(name => {
+        const items = groups[name];
+        let cardHTML = `
+            <div class="receiving-card">
+                <div class="supplier-name" onclick="showSupplierDetail('${name}')">${name}</div>
+                <div class="info-line"><strong>商品數量：</strong>${items.length} 項</div>
+                <div class="info-line"><strong>提供貨類：</strong>${items[0].提供貨類 || ''}</div>
+        `;
+
+        // 有搜尋關鍵字時，在卡片下方顯示商品預覽表格
+        if (keyword) {
+            cardHTML += `<div class="preview-table"><table><thead><tr>
+                <th>商品中文名稱</th>
+                <th>商品英文名稱</th>
+                <th>包裝</th>
+                <th>價格</th>
+                <th>更新日期</th>
+                <th>備註</th>
+            </tr></thead><tbody>`;
+            
+            items.forEach(item => {
+                cardHTML += `
+                    <tr>
+                        <td>${item.商品中文名稱 || item.商品名稱 || ''}</td>
+                        <td>${item.商品英文名稱 || ''}</td>
+                        <td>${item.包裝 || ''}</td>
+                        <td>${item.價格 || ''}</td>
+                        <td>${formatDateOnly(item.更新日期)}</td>
+                        <td>${item.備註 || ''}</td>
+                    </tr>`;
+            });
+            cardHTML += `</tbody></table></div>`;
+        }
+
+        cardHTML += `<div style="margin-top: 20px; color: #c9a96e; text-align: right; font-size: 1.05rem;">點擊供應商名稱查看完整資料 →</div></div>`;
+        grid.innerHTML += cardHTML;
+    });
+
+    if (Object.keys(groups).length === 0) {
+        grid.innerHTML = `<p class="no-data">目前沒有符合的供應商或商品資料</p>`;
+    }
+}
+
+function showSupplierDetail(name) {
+    currentSupplierView = 'detail';
+    selectedSupplier = name;
+    filterCurrentTab();   // 立即刷新
+}
+
+function renderSupplierDetail(keyword = '') {
+    const grid = document.getElementById('receiving-grid');
+    let items = supplierList.filter(item => (item.供應商名稱 || '').trim() === selectedSupplier);
+
+    // 在詳細頁面仍可透過搜尋欄過濾商品
+    if (keyword) {
+        items = items.filter(item => 
+            (item.商品中文名稱 || '').toLowerCase().includes(keyword) ||
+            (item.商品英文名稱 || '').toLowerCase().includes(keyword) ||
+            (item.商品名稱 || '').toLowerCase().includes(keyword)
+        );
+    }
+
+    if (!items.length) {
+        grid.innerHTML = `<p class="no-data">此供應商目前沒有符合搜尋條件的商品</p>`;
+        return;
+    }
+
+    const first = items[0];
+
+    let html = `
+        <div class="detail-container receiving-card">
+            <div class="detail-header">
+                <button class="detail-back-btn" onclick="backToSupplierList()">← 返回供應商列表</button>
+                <div class="detail-supplier-name">${selectedSupplier}</div>
+                <div style="width:140px"></div>
+            </div>
+
+            <div class="supplier-info-card">
+                <div class="info-item"><strong>提供貨類</strong>${first.提供貨類 || ''}</div>
+                <div class="info-item"><strong>公司電話</strong>${first.公司電話 || ''}</div>
+                <div class="info-item"><strong>Sales 電話</strong>${first['Sales 電話'] || first['Sales電話'] || ''}</div>
+                <div class="info-item"><strong>Fax no.</strong>${first['Fax no.'] || ''}</div>
+                <div class="info-item"><strong>MOQ</strong>${first.MOQ || ''}</div>
+                <div class="info-item"><strong>車期</strong>${first.車期 || ''}</div>
+                <div class="info-item"><strong>截單時間</strong>${formatDateOnly(first.截單時間)}</div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>商品中文名稱</th>
+                        <th>商品英文名稱</th>
+                        <th>包裝</th>
+                        <th>價格</th>
+                        <th>更新日期</th>
+                        <th>備註</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+    
+    items.forEach(item => {
+        html += `
+            <tr>
+                <td>${item.商品中文名稱 || item.商品名稱 || ''}</td>
+                <td>${item.商品英文名稱 || ''}</td>
+                <td>${item.包裝 || ''}</td>
+                <td>${item.價格 || ''}</td>
+                <td>${formatDateOnly(item.更新日期)}</td>
+                <td>${item.備註 || ''}</td>
+            </tr>`;
+    });
+
+    html += `</tbody></table></div>`;
+    grid.innerHTML = html;
+}
+
+function backToSupplierList() {
+    currentSupplierView = 'list';
+    selectedSupplier = null;
+    filterCurrentTab();
+}
+
+// 原有收貨紀錄渲染（不變）
+function renderGrid(list) {
+    const grid = document.getElementById('receiving-grid');
+    grid.innerHTML = '';
+    list.forEach(item => {
+        const displayDate = formatDate(item.DeliveryDate);
+        const weekday = getWeekdayShort(item.DeliveryDate);
+        let html = `
+            <div class="receiving-card">
+                <div class="supplier-name">${item.Supplier || ''} <small>${item.Supplier_zh || ''}</small></div>
+                <div class="info-line"><strong>已訂貨品：</strong>${item.Products || ''}</div>
+                <div class="info-line"><strong>備註：</strong>${item.Remarks || ''}</div>
+                <div class="info-line"><strong>收貨日期：</strong>${displayDate} <span style="color:#c9a96e">(${weekday})</span></div>
+        `;
+        if (currentTab === 'today') {
+            const isChecked = (item.Status || '').toLowerCase() === 'received';
+            html += `
+                <div class="checkbox-container">
+                    <input type="checkbox" id="chk-${item.ID}" ${isChecked ? 'checked' : ''} 
+                           onchange="toggleStatus(${item.ID}, this.checked)">
+                    <label for="chk-${item.ID}" class="status ${item.Status || 'pending'}">
+                        ${item.Status === 'received' ? '已收貨' : '待收貨'}
+                    </label>
+                </div>
+            `;
+        }
+        html += `</div>`;
+        grid.innerHTML += html;
+    });
+
+    if (list.length === 0) {
+        grid.innerHTML = `<p style="text-align:center; color:#888; grid-column:1/-1; padding:60px 20px;">
+            ${currentTab === 'today' ? '今天沒有收貨紀錄' : '目前沒有未來的訂貨紀錄'}
+        </p>`;
+    }
+}
+
+function getWeekdayShort(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '';
+    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    return days[date.getDay()];
+}
+
+async function toggleStatus(id, isReceived) {
+    const newStatus = isReceived ? 'received' : 'pending';
+    try {
+        await fetch(WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'updateStatus', id: id, status: newStatus, sheet: 'DailyReceiving' })
+        });
+        const item = receivingList.find(r => r.ID == id);
+        if (item) item.Status = newStatus;
+        filterCurrentTab();
+    } catch (e) {
+        alert('更新失敗');
+    }
+}
+
+function changeLanguage() {
+    const lang = document.getElementById('language-select').value;
+    localStorage.setItem('preferredLanguage', lang);
+}
+
+// 初始化
+window.onload = () => {
+    showCurrentDate();
+    loadData();
+};
+</script>
+</body>
+</html>

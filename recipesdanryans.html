@@ -203,8 +203,8 @@ function logout() {
 }
 
 // Google Apps Script URL（請替換成你的實際 URL）
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz0H09wZ2D2qR6AWhGVlRY07oQh4jCo1XtKrrf_RMuo1HMC-R_Q5tiuu52ntc8MzmPs/exec';
-
+//const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz0H09wZ2D2qR6AWhGVlRY07oQh4jCo1XtKrrf_RMuo1HMC-R_Q5tiuu52ntc8MzmPs/exec';
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyXy97JW8pfrwo_8_DrX1-pUuZJaGlv-W-fcB0GGaV0T7svNdoLSTSaCjAd5tOUvK9M/exec';
 let recipes = [];
 
 // 載入食譜
@@ -279,11 +279,9 @@ function renderDisplay(side, id) {
 
 // 完成份量（只有有值才顯示）
 
-if (recipe.servings && recipe.servings.trim() !== '') {
     html += `<h3 style="font-size:1.6rem; color:var(--accent); margin:32px 0 12px;">${lang === 'zh' ? '完成份量' : 'Yield'}</h3>`;
-    html += `<p style="font-size:1.15rem; padding-left:40px; margin-bottom:32px;">${recipe.servings.trim()}</p>`;
-}
-
+    html += `<p style="font-size:1.15rem; padding-left:40px; margin-bottom:32px;">${recipe.servings || [] }</p>`;
+    html += `</p>`;
 
 
 // 材料
