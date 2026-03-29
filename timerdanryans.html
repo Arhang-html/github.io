@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    <title>Kitchen Timer - 廚房計時器</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#c9a96e">
+    <style>
+        :root {
+            --bg: #1a0f0a;
+            --text: #f5f0e6;
+            --accent: #c9a96e;
+            --accent-hover: #b38c4d;
+            --card-bg: rgba(40, 25, 15, 0.85);
+            --border: #8b6f47;
+            --glow: 0 0 15px rgba(201, 169, 110, 0.4);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg) url('https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&q=80') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text);
+            font-family: 'Georgia', 'Times New Roman', serif;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .top-bar {
+            position: fixed; top: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            padding: 15px 30px; display: flex; justify-content: space-between; align-items: center;
+            z-index: 1000; border-bottom: 1px solid var(--border);
+        }
+
+        .language-switch { display: flex; align-items: center; gap: 16px; }
+        select, button {
+            background: var(--accent); color: #000; border: none; padding: 10px 20px;
+            border-radius: 6px; font-size: 1rem; cursor: pointer; transition: all 0.3s;
+        }
+        select:hover, button:hover { background: var(--accent-hover); transform: translateY(-2px); }
+        .logout-btn { background: #8b0000; color: white; }
+        .logout-btn:hover { background: #a00000; }
+
+        .container {
+            max-width: 1100px; margin: 120px auto 60px; padding: 0 30px; text-align: center;
+        }
+        h1 { font-size: 3.2rem; color: var(--accent); text-shadow: 0 4px 12px rgba(0,0,0,0.6); margin-bottom: 10px; }
+        .subtitle { font-size: 1.3rem; color: #d4c9b0; margin-bottom: 40px; }
+
+        .add-btn {
+            background: var(--accent); color: #000; padding: 14px 32px; font-size: 1.3rem;
+            border-radius: 50px; margin-bottom: 40px; display: inline-flex; align-items: center; gap: 10px;
+        }
+        .add-btn:hover { background: var(--accent-hover); transform: scale(1.05); }
+
+        .timers-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 25px;
+        }
+        .timer-card {
+            background: var(--card-bg); backdrop-filter: blur(10px);
+            border: 1px solid var(--border); border-radius: 20px; padding: 25px;
+            box-shadow: var(--glow); transition: all 0.3s;
+            position: relative;
+        }
+        .timer-card:hover { transform: translateY(-8px); box-shadow: 0 0 40px rgba(201,169,110,0.6); }
+
+        .timer-name {
+            font-size: 1.4rem; font-weight: 500; margin-bottom: 12px; text-align: left;
+        }
+        .timer-display {
+            font-size: 4.2rem; font-weight: 400; letter-spacing: 4px; margin: 20px 0;
+            font-family: monospace; color: var(--accent);
+        }
+        .timer-display.negative { color: #ff6666; }
+
+        .timer-controls {
+            display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+        }
+        .timer-controls button {
+            padding: 10px 24px; font-size: 1.1rem; min-width: 110px;
+        }
+        .delete-btn {
+            position: absolute; top: 15px; right: 15px; background: #8b0000; color: white; padding: 6px 12px; font-size: 0.9rem;
+        }
+
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: var(--card-bg); padding: 40px; border-radius: 20px; width: 90%; max-width: 480px;
+            border: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <button class="back-btn" onclick="history.back()" data-en="← Back" data-zh="← 上一頁">← Back</button>
+    <div class="language-switch">
+        <select id="language-select" onchange="changeLanguage()">
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+        </select>
+        <button class="logout-btn" onclick="logout()">登出</button>
+    </div>
+</div>
+
+<div class="container">
+    <h1 id="welcome-title">Kitchen Timer</h1>
+    <div class="subtitle" id="subtitle">廚房計時器</div>
+
+    <button class="add-btn" onclick="showAddModal()" data-en="＋ Add New Timer" data-zh="＋ 新增計時器">
+        ＋ <span data-en="Add New Timer" data-zh="新增計時器">Add New Timer</span>
+    </button>
+
+    <div class="timers-grid" id="timers-grid"></div>
+</div>
+
+<!-- 停止響鈴浮動按鈕 -->
+<button id="stop-ringing-btn"
+        onclick="stopRinging()"
+        style="display:none; position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
+               background:#8b0000; color:white; padding:18px 40px; font-size:1.4rem;
+               border:none; border-radius:50px; box-shadow:0 0 20px rgba(255,0,0,0.6); z-index:3000;">
+    🛑 停止響鈴
+</button>
+
+<!-- 新增計時器 Modal -->
+<div class="modal" id="add-modal">
+    <div class="modal-content">
+        <h2 data-en="New Kitchen Timer" data-zh="新增廚房計時器">New Kitchen Timer</h2>
+        <br>
+
+        <!-- 第一行：Timer Name -->
+        <label data-en="Timer Name:" data-zh="計時器名稱：">Timer Name:</label>
+        <input type="text" id="modal-name" value="Kitchen Timer" 
+               style="width:100%; padding:10px; margin:8px 0 25px; background:#33261f; color:#f5f0e6; border:1px solid #8b6f47; border-radius:6px;">
+
+        <!-- 第二行：Time Setting -->
+        <label data-en="Time Setting:" data-zh="時間設定：">Time Setting:</label>
+        <div style="display:flex; gap:10px; margin:8px 0 25px;">
+            <input type="number" id="modal-mins" min="0" max="180" value="10" 
+                   style="flex:1; padding:10px; background:#33261f; color:#f5f0e6; border:1px solid #8b6f47; border-radius:6px;"> 
+            <span data-en="mins" data-zh="分鐘">mins</span>
+            
+            <input type="number" id="modal-secs" min="0" max="59" value="0" 
+                   style="flex:1; padding:10px; background:#33261f; color:#f5f0e6; border:1px solid #8b6f47; border-radius:6px;"> 
+            <span data-en="sec" data-zh="秒">sec</span>
+        </div>
+
+        <!-- 第三行：Ringtone -->
+        <label data-en="Ringtone:" data-zh="鈴聲：">Ringtone:</label>
+        <div style="background:#33261f; padding:12px 16px; border-radius:6px; margin:8px 0 30px; text-align:left; border:1px solid #8b6f47;">
+            🎵 <strong data-en="Strict Master" data-zh="嚴格的師傅">嚴格的師傅</strong> 
+            <span style="font-size:0.9rem; color:#d4c9b0;">（alarm1.mp3）</span>
+        </div>
+
+        <div style="display:flex; gap:15px; justify-content:flex-end;">
+            <button onclick="hideAddModal()" data-en="Cancel" data-zh="取消">Cancel</button>
+            <button onclick="addNewTimer()" style="background:#c9a96e; color:#000;" data-en="Create Timer" data-zh="建立計時器">Create Timer</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// 註冊 Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('Service Worker registered'))
+      .catch(err => console.log('Service Worker registration failed', err));
+  });
+}
+
+// 登入檢查
+if (localStorage.getItem('isAdminLoggedIn') !== 'true') {
+    window.location.href = 'login.html';
+}
+
+function logout() {
+    if (confirm('確定要登出嗎？ / Are you sure you want to logout?')) {
+        localStorage.removeItem('isAdminLoggedIn');
+        localStorage.removeItem('loginTime');
+        window.location.href = 'login.html';
+    }
+}
+
+// ====================== 雙語翻譯（已修正語法） ======================
+const translations = {
+    en: {
+        'Kitchen Timer': 'Kitchen Timer',
+        '廚房計時器': 'Kitchen Timer',
+        '← Back': '← Back',
+        '＋ Add New Timer': '＋ Add New Timer',
+        '新增計時器': 'Add New Timer',
+        'New Kitchen Timer': 'New Kitchen Timer',
+        '計時器名稱：': 'Timer Name:',
+        'Time Setting:': 'Time Setting:',
+        'mins': 'mins',
+        'sec': 'sec',
+        'Ringtone:': 'Ringtone:',
+        '嚴格的師傅': 'Strict Master',
+        'Cancel': 'Cancel',
+        'Create Timer': 'Create Timer',
+        'Start': 'Start',
+        'Pause': 'Pause',
+        'Resume': 'Resume',
+        'Reset': 'Reset',
+        'Delete': 'Delete'
+    },
+    zh: {
+        'Kitchen Timer': '廚房計時器',
+        '廚房計時器': '廚房計時器',
+        '← Back': '← 上一頁',
+        '＋ Add New Timer': '＋ 新增計時器',
+        '新增計時器': '新增計時器',
+        'New Kitchen Timer': '新增廚房計時器',
+        '計時器名稱：': '計時器名稱：',
+        'Time Setting:': '時間設定：',
+        'mins': '分鐘',
+        'sec': '秒',
+        'Ringtone:': '鈴聲：',
+        '嚴格的師傅': '嚴格的師傅',
+        'Cancel': '取消',
+        'Create Timer': '建立計時器',
+        'Start': '開始',
+        'Pause': '暫停',
+        'Resume': '繼續',
+        'Reset': '重設',
+        'Delete': '刪除'
+    }
+};
+
+function changeLanguage() {
+    const lang = document.getElementById('language-select').value;
+    localStorage.setItem('preferredLanguage', lang);
+
+    document.querySelectorAll('[data-en]').forEach(el => {
+        const key = el.getAttribute('data-en');
+        if (translations[lang] && translations[lang][key]) {
+            el.textContent = translations[lang][key];
+        }
+    });
+    document.getElementById('welcome-title').textContent = translations[lang]['Kitchen Timer'] || 'Kitchen Timer';
+}
+
+// ====================== 計時器核心 ======================
+let timers = [];
+let alarmAudio = null;
+let isRinging = false;
+
+function initAlarmAudio() {
+    if (!alarmAudio) {
+        alarmAudio = new Audio('alarm1.mp3');
+        alarmAudio.loop = true;      // 持續循環播放
+        alarmAudio.volume = 1.0;     // 最大音量
+    }
+}
+
+// 持續響鈴（已修正 AudioContext 問題 + 加大音量）
+// 使用真實音檔播放（推薦方式，更穩定且響亮）
+function startRinging() {
+    if (isRinging) return;
+    isRinging = true;
+    document.getElementById('stop-ringing-btn').style.display = 'block';
+
+    initAlarmAudio();   // 確保 audio 物件已建立
+
+    alarmAudio.currentTime = 0;
+    alarmAudio.play().catch(err => {
+        console.log("播放音檔失敗:", err);
+        // 如果音檔播放失敗，fallback 到簡單提示
+        alert("時間到了！\n\n" + "請手動停止響鈴");
+    });
+}
+
+function stopRinging() {
+    if (alarmAudio) {
+        alarmAudio.pause();
+        alarmAudio.currentTime = 0;
+    }
+    isRinging = false;
+    document.getElementById('stop-ringing-btn').style.display = 'none';
+}
+
+async function showSystemNotification(title, body) {
+    if (!("Notification" in window)) return;
+    if (Notification.permission === "default") await Notification.requestPermission();
+    if (Notification.permission !== "granted") return;
+
+    try {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) {
+            reg.showNotification(title, {
+                body: body,
+                icon: "icon-192.png",
+                tag: "kitchen-timer-alert",
+                vibrate: [300, 100, 300],
+                requireInteraction: true
+            });
+        } else {
+            new Notification(title, { body: body, icon: "icon-192.png" });
+        }
+    } catch (err) {
+        console.log("通知失敗:", err);
+    }
+}
+
+function formatDisplay(seconds) {
+    const sign = seconds < 0 ? '-' : '';
+    let abs = Math.abs(seconds);
+    const mins = Math.floor(abs / 60);
+    const secs = Math.floor(abs % 60);
+    return `${sign}${mins}mins:${secs.toString().padStart(2, '0')}sec`;
+}
+
+function loadTimers() {
+    const saved = localStorage.getItem('kitchenTimers');
+    if (saved) timers = JSON.parse(saved);
+}
+
+function saveTimers() {
+    localStorage.setItem('kitchenTimers', JSON.stringify(timers));
+}
+
+function renderTimers() {
+    const grid = document.getElementById('timers-grid');
+    grid.innerHTML = '';
+
+    const now = Date.now();
+
+    timers.forEach((timer, index) => {
+        let displaySeconds = 0;
+
+        if (timer.isRunning && timer.targetEndTime) {
+            displaySeconds = Math.floor((timer.targetEndTime - now) / 1000);
+            if (displaySeconds < -3600) displaySeconds = -3600;
+        } else if (timer.pausedRemaining !== null) {
+            displaySeconds = timer.pausedRemaining;
+        } else {
+            displaySeconds = timer.presetDuration;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'timer-card';
+        card.innerHTML = `
+            <button class="delete-btn" onclick="deleteTimer(${index}); event.stopImmediatePropagation();">×</button>
+            <div class="timer-name">${timer.name}</div>
+            <div class="timer-display ${displaySeconds < 0 ? 'negative' : ''}">
+                ${formatDisplay(displaySeconds)}
+            </div>
+            <div class="timer-controls">
+                ${timer.isRunning 
+                    ? `<button onclick="pauseTimer(${index}); event.stopImmediatePropagation();">暫停</button>`
+                    : `<button onclick="startTimer(${index}); event.stopImmediatePropagation();">開始</button>`}
+                <button onclick="resetTimer(${index}); event.stopImmediatePropagation();">重設</button>
+            </div>
+        `;
+        grid.appendChild(card);
+
+        if (timer.isRunning && timer.lastSeconds > 0 && displaySeconds <= 0 && !timer.rang) {
+            startRinging();
+            showSystemNotification(timer.name + " 到時了！", "時間到了！請點擊停止響鈴");
+            timer.rang = true;
+            saveTimers();
+        }
+
+        timer.lastSeconds = displaySeconds;
+    });
+}
+
+// Modal 與計時器控制
+function showAddModal() {
+    document.getElementById('add-modal').style.display = 'flex';
+}
+
+function hideAddModal() {
+    document.getElementById('add-modal').style.display = 'none';
+}
+
+function addNewTimer() {
+    const name = document.getElementById('modal-name').value || 'Kitchen Timer';
+    let mins = parseInt(document.getElementById('modal-mins').value) || 0;
+    let secs = parseInt(document.getElementById('modal-secs').value) || 0;
+
+    if (mins > 180) mins = 180;
+    const duration = mins * 60 + secs;
+
+    if (duration <= 0) {
+        alert('請設定至少 1 秒 / Please set at least 1 second');
+        return;
+    }
+
+    timers.push({
+        id: Date.now(),
+        name: name,
+        presetDuration: duration,
+        isRunning: false,
+        targetEndTime: null,
+        pausedRemaining: duration,
+        rang: false,
+        lastSeconds: duration
+    });
+
+    saveTimers();
+    hideAddModal();
+    renderTimers();
+}
+
+function startTimer(index) {
+    const timer = timers[index];
+    const now = Date.now();
+    timer.isRunning = true;
+    timer.targetEndTime = now + (timer.pausedRemaining * 1000);
+    timer.rang = false;
+    saveTimers();
+    renderTimers();
+}
+
+function pauseTimer(index) {
+    const timer = timers[index];
+    if (!timer.isRunning) return;
+    const now = Date.now();
+    timer.pausedRemaining = Math.floor((timer.targetEndTime - now) / 1000);
+    timer.isRunning = false;
+    timer.targetEndTime = null;
+    saveTimers();
+    renderTimers();
+}
+
+function resetTimer(index) {
+    const timer = timers[index];
+    timer.isRunning = false;
+    timer.targetEndTime = null;
+    timer.pausedRemaining = timer.presetDuration;
+    timer.rang = false;
+    saveTimers();
+    renderTimers();
+}
+
+function deleteTimer(index) {
+    if (confirm('確定要刪除這個計時器嗎？ / Delete this timer?')) {
+        timers.splice(index, 1);
+        saveTimers();
+        renderTimers();
+    }
+}
+
+// 每秒更新
+setInterval(renderTimers, 1000);
+
+window.onload = () => {
+    loadTimers();
+    const savedLang = localStorage.getItem('preferredLanguage') || 'zh';
+    document.getElementById('language-select').value = savedLang;
+    changeLanguage();
+    renderTimers();
+
+    // 預先初始化音檔
+    initAlarmAudio();
+};
+
+</script>
+
+</body>
+</html>
